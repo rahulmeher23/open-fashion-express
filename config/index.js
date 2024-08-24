@@ -20,4 +20,6 @@ const serviceAccount = {
     databaseURL: "https://open-fashion-b648c.firebaseio.com",
   });
   
-  export const db = admin.firestore();
+ const db = admin.firestore();
+
+ module.exports = db

@@ -1,7 +1,6 @@
 const { Router } = require("express");
-
 const router = Router();
-
+const db = require('./../config/index')
 
 // Get products
 router.get("/products", async (req, res) => {

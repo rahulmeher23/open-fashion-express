@@ -1,7 +1,7 @@
 import CustomError from "../utils/customError.js";
 import bcrypt from "bcrypt"
-import { comparePassword } from "../utils/hashPassword.js";
-import { loginSchema } from "../validators/auth.js";
+import { comparePassword, hashPassword } from "../utils/hashPassword.js";
+import { loginSchema, signUpSchema } from "../validators/auth.js";
 import admin from "../config/firebase.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateToken.js";
 
@@ -74,4 +74,35 @@ const loginService = async (req, res) => {
 return response
 };
 
-export default loginService;
+const signUpService = async(req, res) => {
+  const {error, value} = signUpSchema.validate(req.body);
+
+  if(error) {
+    throw new CustomError(400, error.details[0].message)
+  }
+
+  console.log("value", value)
+
+  const hashedPassword = await hashPassword(value.password);
+
+  const newRecord = await admin.auth().createUser({
+    email: value.email,
+    password: hashedPassword,
+  });
+
+  const newUserBody = {
+    ...value,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  }
+
+  const newUser = admin.firestore().collection('users').doc(newRecord.uid).set(newUserBody);
+
+  return {
+    uid: newRecord.uid,
+    email: value.email,
+    name: value.name,
+    phone: value.phone,
+  }
+}
+
+export { loginService, signUpService};

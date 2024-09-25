@@ -4,22 +4,24 @@
 // const bodyParser = require("body-parser");
 // const cors = require("cors");
 
-import router from "./routes.js"
 import express from "express";
 import multer from "multer";
 import bodyParser from "body-parser";
 import cors from "cors"
 import authRouter from "./auth.route.js";
+import productsRouter from "./products.route.js";
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-const basePath = ""
+const basePath = "/api/v1"
 
-app.use('/', router);
-app.use(`${basePath}`, authRouter)
+
 app.get('/', (req, res) => {res.json({message: "Welcome to Open Fashion Backend"})})
+app.use(`${basePath}`, authRouter);
+app.use(`${basePath}`, productsRouter);
+
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

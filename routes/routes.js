@@ -1,6 +1,8 @@
-const { Router } = require("express");
+// const { Router } = require("express");
+// const db = require('./../config/index')
+import { db } from "../config/firebase.js";
+import { Router } from "express";
 const router = Router();
-const db = require('./../config/index')
 
 // Get products
 router.get("/products", async (req, res) => {
@@ -22,4 +24,4 @@ router.get("/products", async (req, res) => {
     }
   });
 
-module.exports = router
+export default router

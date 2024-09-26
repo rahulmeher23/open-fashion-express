@@ -1,9 +1,10 @@
 import CustomError from "../utils/customError.js";
-import bcrypt from "bcrypt"
-import { comparePassword, hashPassword } from "../utils/hashPassword.js";
 import { loginSchema, signUpSchema } from "../validators/auth.js";
 import admin from "../config/firebase.js";
-import { generateAccessToken, generateRefreshToken } from "../utils/generateToken.js";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from "../utils/generateToken.js";
 
 const loginService = async (req, res) => {
   const { error, value } = loginSchema.validate(req.body);
@@ -20,10 +21,10 @@ const loginService = async (req, res) => {
     }
     throw new CustomError(500, "Internal Server Error.");
   }
-//   userCredentials = await admin.auth().getUserByEmail(value)
-//   if(!userCredentials) {
-//     throw new CustomError(404, 'User not found.')
-//   }
+  //   userCredentials = await admin.auth().getUserByEmail(value)
+  //   if(!userCredentials) {
+  //     throw new CustomError(404, 'User not found.')
+  //   }
   let userDetails;
   try {
     const userDocRef = await admin
@@ -41,68 +42,69 @@ const loginService = async (req, res) => {
     throw new CustomError(500, "Failed to fetch user details.");
   }
 
-  const passwordMatch = await bcrypt.compare(value.password,  userDetails.password);
-  if(!passwordMatch) {
-    throw new CustomError(401, 'Invalid email or password')
+  const passwordMatch = value.password === userDetails.password;
+
+  if (!passwordMatch) {
+    throw new CustomError(401, "Invalid email or password");
   }
 
   const claims = {
     uid: userCredentials.uid,
-    email:  userDetails.email,
-
-  }
-
-  const accessToken = generateAccessToken(claims);
-  const refreshToken = generateRefreshToken(claims)
-
-
-  const response = {
-    uid: userCredentials.uid,
-    email: userCredentials.email,
-    accessToken: accessToken,
-    refreshToken: refreshToken
+    email: userDetails.email,
   };
 
-  delete response.password;
+  const accessToken = generateAccessToken(claims);
+  const refreshToken = generateRefreshToken(claims);
 
-//   return res.status(200).json({
-//     success: true,
-//     message: "User Logged In Successfully",
-//     data: response,
-//   });
+  const response = {
+    userDetails,
+    accessToken: accessToken,
+    refreshToken: refreshToken,
+  };
 
-return response
+  delete response.userDetails.password;
+  delete response.userDetails.createdAt;
+
+  //   return res.status(200).json({
+  //     success: true,
+  //     message: "User Logged In Successfully",
+  //     data: response,
+  //   });
+
+  return response;
 };
 
-const signUpService = async(req, res) => {
-  const {error, value} = signUpSchema.validate(req.body);
+const signUpService = async (req, res) => {
+  const { error, value } = signUpSchema.validate(req.body);
 
-  if(error) {
-    throw new CustomError(400, error.details[0].message)
+  if (error) {
+    throw new CustomError(400, error.details[0].message);
   }
 
-  console.log("value", value)
-
-  const hashedPassword = await hashPassword(value.password);
+  console.log("value", value);
 
   const newRecord = await admin.auth().createUser({
     email: value.email,
-    password: hashedPassword,
+    password: value?.password,
   });
 
   const newUserBody = {
     ...value,
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
-  }
+  };
 
-  const newUser = admin.firestore().collection('users').doc(newRecord.uid).set(newUserBody);
+  const newUser = admin
+    .firestore()
+    .collection("users")
+    .doc(newRecord.uid)
+    .set(newUserBody);
 
   return {
     uid: newRecord.uid,
     email: value.email,
     name: value.name,
     phone: value.phone,
-  }
-}
+  };
+};
 
-export { loginService, signUpService};
+export { loginService, signUpService };

@@ -93,11 +93,7 @@ const signUpService = async (req, res) => {
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
   };
 
-  const newUser = admin
-    .firestore()
-    .collection("users")
-    .doc(newRecord.uid)
-    .set(newUserBody);
+  const newUser = await  admin.firestore().collection("users").doc(newRecord.uid).set(newUserBody);
 
   return {
     uid: newRecord.uid,

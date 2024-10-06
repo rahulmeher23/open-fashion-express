@@ -46,7 +46,7 @@ const signUp = async(req, res) => {
         console.log("error errorerror", error)
         // Forward all other errors to the error-handling middleware
         // throw new CustomError(500, error?.message || "Internal Server Error");
-        return res.status(400).json({error: "Internal Server Error"})
+        return res.status(500).json({error: "Internal Server Error"})
       }
 }
 
